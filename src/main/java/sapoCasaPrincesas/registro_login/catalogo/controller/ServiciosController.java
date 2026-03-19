@@ -12,7 +12,10 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/servicios")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = {
+        "http://localhost:5173",
+        "https://sapocasaprinsesas.netlify.app"
+})
 public class ServiciosController {
 
     private final List<CategoriaServicio> categorias = new ArrayList<>(List.of(
@@ -33,17 +36,13 @@ public class ServiciosController {
             )))
     ));
 
-
     // LISTAR CATEGORÍAS
-
     @GetMapping
     public ResponseEntity<List<CategoriaServicio>> obtenerCategorias() {
         return ResponseEntity.ok(categorias);
     }
 
-
     // OBTENER CATEGORÍA POR NOMBRE
-
     @GetMapping("/{categoria}")
     public ResponseEntity<?> obtenerCategoria(@PathVariable String categoria) {
         return categorias.stream()
@@ -54,9 +53,7 @@ public class ServiciosController {
                         .body("Categoría inexistente"));
     }
 
-
     // OBTENER SUBSERVICIO POR ID
-
     @GetMapping("/subservicio/{id}")
     public ResponseEntity<?> obtenerSubServicioPorId(@PathVariable int id) {
         return categorias.stream()
@@ -68,9 +65,7 @@ public class ServiciosController {
                         .body("Subservicio inexistente"));
     }
 
-
     // BUSCAR SUBSERVICIO POR NOMBRE
-
     @GetMapping("/buscar/{nombre}")
     public ResponseEntity<List<SubServicio>> buscarPorNombre(@PathVariable String nombre) {
         List<SubServicio> encontrados = categorias.stream()
@@ -81,13 +76,23 @@ public class ServiciosController {
         return ResponseEntity.ok(encontrados);
     }
 
+    // ⭐⭐ NUEVO ENDPOINT — SUBSERVICIOS POR CATEGORÍA (LO QUE TU FRONTEND NECESITA)
+    @GetMapping("/subservicios/categoria/{id}")
+    public ResponseEntity<List<SubServicio>> obtenerSubserviciosPorCategoria(@PathVariable int id) {
+
+        if (id < 1 || id > categorias.size()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+
+        CategoriaServicio categoria = categorias.get(id - 1);
+
+        return ResponseEntity.ok(categoria.getSubservicios());
+    }
 
     // CREAR SUBSERVICIO
-
     @PostMapping("/subservicio")
     public ResponseEntity<?> crearSubServicio(@RequestBody SubServicioRequest request) {
 
-        // Validaciones
         if (request.getCategoria() == null || request.getCategoria().trim().isEmpty()) {
             return ResponseEntity.badRequest().body("La categoría es obligatoria");
         }
@@ -104,7 +109,6 @@ public class ServiciosController {
             return ResponseEntity.badRequest().body("El precio debe ser mayor a 0");
         }
 
-        // Buscar categoría
         CategoriaServicio cat = categorias.stream()
                 .filter(c -> c.getCategoria().equalsIgnoreCase(request.getCategoria()))
                 .findFirst()
@@ -112,14 +116,12 @@ public class ServiciosController {
                         new ResponseStatusException(HttpStatus.NOT_FOUND, "Categoría no encontrada")
                 );
 
-        // Generar nuevo ID
         int nuevoId = categorias.stream()
                 .flatMap(c -> c.getSubservicios().stream())
                 .mapToInt(SubServicio::getId)
                 .max()
                 .orElse(0) + 1;
 
-        // Crear subservicio
         SubServicio nuevo = new SubServicio(nuevoId, request.getNombre(), request.getPrecio());
         cat.getSubservicios().add(nuevo);
 
@@ -127,17 +129,12 @@ public class ServiciosController {
                 .body("Subservicio creado correctamente");
     }
 
-
-
-
     // ACTUALIZAR SUBSERVICIO
-
     @PutMapping("/subservicio/{id}")
     public ResponseEntity<?> actualizarSubServicio(
             @PathVariable int id,
             @RequestBody SubServicioRequest request) {
 
-        // Buscar subservicio
         SubServicio sub = categorias.stream()
                 .flatMap(c -> c.getSubservicios().stream())
                 .filter(s -> s.getId() == id)
@@ -149,7 +146,6 @@ public class ServiciosController {
                     .body("Subservicio inexistente");
         }
 
-        // Validación de nombre
         if (request.getNombre() != null) {
             if (request.getNombre().trim().isEmpty()) {
                 return ResponseEntity.badRequest().body("El nombre no puede estar vacío");
@@ -157,7 +153,6 @@ public class ServiciosController {
             sub.setNombre(request.getNombre());
         }
 
-        // Validación de precio
         if (request.getPrecio() != null) {
             if (request.getPrecio() <= 0) {
                 return ResponseEntity.badRequest().body("El precio debe ser mayor a 0");
@@ -168,11 +163,7 @@ public class ServiciosController {
         return ResponseEntity.ok("Subservicio actualizado correctamente");
     }
 
-
-
-
     // ELIMINAR SUBSERVICIO
-
     @DeleteMapping("/subservicio/{id}")
     public ResponseEntity<?> eliminarSubServicio(@PathVariable int id) {
 
@@ -192,39 +183,22 @@ public class ServiciosController {
         return ResponseEntity.ok("Subservicio eliminado correctamente");
     }
 
-
-    // REQUEST DTO
-
+    // DTO
     public static class SubServicioRequest {
 
         private String categoria;
         private String nombre;
-        private Double precio; // ← ahora permite detectar null
+        private Double precio;
 
-        public String getCategoria() {
-            return categoria;
-        }
+        public String getCategoria() { return categoria; }
+        public String getNombre() { return nombre; }
+        public Double getPrecio() { return precio; }
 
-        public String getNombre() {
-            return nombre;
-        }
-
-        public Double getPrecio() {
-            return precio;
-        }
-
-        public void setCategoria(String categoria) {
-            this.categoria = categoria;
-        }
-
-        public void setNombre(String nombre) {
-            this.nombre = nombre;
-        }
-
-        public void setPrecio(Double precio) {
-            this.precio = precio;
-        }
+        public void setCategoria(String categoria) { this.categoria = categoria; }
+        public void setNombre(String nombre) { this.nombre = nombre; }
+        public void setPrecio(Double precio) { this.precio = precio; }
     }
 
-
 }
+
+
