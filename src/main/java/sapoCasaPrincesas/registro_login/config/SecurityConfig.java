@@ -2,7 +2,6 @@ package sapoCasaPrincesas.registro_login.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -15,31 +14,30 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
-                .cors()
-                .and()
-                // Desactivo CSRF porque la API se consume desde un frontend separado (Vite/React)
-                .csrf(csrf -> csrf.disable())
-
-                // Por ahora permito todas las rutas sin autenticación
-                .authorizeHttpRequests(auth -> auth
-                        .anyRequest().permitAll()
-                )
-
-                // Habilito autenticación básica (útil para pruebas)
-                .httpBasic(Customizer.withDefaults())
-
-                // Habilito el formulario de login por defecto de Spring (aunque no lo use)
-                .formLogin(Customizer.withDefaults());
+            .cors()
+            .and()
+            .csrf(csrf -> csrf.disable())
+            .formLogin(form -> form.disable())
+            .httpBasic(basic -> basic.disable())
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers(
+                    "/usuarios/**",
+                    "/servicios/**",
+                    "/salones/**",
+                    "/colaboradores/**"
+                ).permitAll()
+                .anyRequest().permitAll()
+            );
 
         return http.build();
     }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        // BCrypt para cifrar contraseñas antes de guardarlas en la base de datos
         return new BCryptPasswordEncoder();
     }
 }
+
 
 
 
