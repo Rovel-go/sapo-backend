@@ -18,8 +18,9 @@ public class CorsConfig {
                 // Habilito CORS para permitir que el frontend (Vite/React) pueda consumir la API
                 registry.addMapping("/**") // Aplica a todos los endpoints del backend
 
-                        // Origen permitido: mi frontend corriendo en localhost:5173
+                        // Origen permitido: mi frontend corriendo en localhost:5173 y en Netlify
                         .allowedOrigins("http://localhost:5173")
+                        "https://sapocasaprincesas.netlify.app"
 
                         // Métodos HTTP que permito usar desde el frontend
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")

@@ -15,6 +15,8 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
+                .cors()
+                .and()
                 // Desactivo CSRF porque la API se consume desde un frontend separado (Vite/React)
                 .csrf(csrf -> csrf.disable())
 
