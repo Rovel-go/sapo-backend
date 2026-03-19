@@ -15,23 +15,18 @@ public class CorsConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
 
-                // Habilito CORS para permitir que el frontend (Vite/React) pueda consumir la API
-                registry.addMapping("/**") // Aplica a todos los endpoints del backend
-
-                        // Origen permitido: mi frontend corriendo en localhost:5173 y en Netlify
-                        .allowedOrigins("http://localhost:5173")
-                        "https://sapocasaprincesas.netlify.app"
-
-                        // Métodos HTTP que permito usar desde el frontend
+                registry.addMapping("/**")
+                        .allowedOrigins(
+                                "http://localhost:5173",
+                                "https://sapocasaprinsesas.netlify.app"
+                        )
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-
-                        // Permito cualquier header enviado desde el cliente
                         .allowedHeaders("*")
-
-                        // Permito el envío de cookies o tokens si fuera necesario
                         .allowCredentials(true);
             }
         };
     }
 
 }
+
+
